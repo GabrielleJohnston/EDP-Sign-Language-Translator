@@ -1,0 +1,60 @@
+
+<!doctype html>
+<html>
+	<head>
+		<title>Sign me</title>
+		<!--css-->
+		<link rel="stylesheet", type="text/css" href="sheet.css">
+		<!--icon-->
+		<link rel="icon", href="signme.png">
+		<header>
+			<!--header file-->
+			<div class="blue" style="height: 45px;">
+				<h2 style="color: white;">Sign Me</h2>
+			</div>
+		</header>
+	</head>
+
+	<body>
+
+		<div id="container" style="position:absolute; left:10px; top:250px"><!--where the camera goes-->
+			<video autoplay="true" id="videoElement">
+
+			</video>
+		</div>
+
+		<div id="chatbox" style="position:absolute;left:930px;top:250px;width:300px;height:620px">
+			<p align="center">Chat Box</p>
+		</div>
+
+		<!--menu-->
+		<nav class="navigation">
+			<ul class="mainmenu">
+				<li><a href="">Settings</a>
+					<ul class="submenu">
+						<li><a href="calibration.html">Start calibrating</a></li>
+						<li><a href="translation.html">Start translating</a></li>
+					</ul><!--end submenu-->
+				</li>
+				<li><a href="">Audio to text conversion</a></li>
+				<li><a href="">Sign language to text conversion</a></li>
+				<li><a href="">Redo conversion</a></li>
+			</ul>
+		</nav>
+
+		<script>
+					var video = document.querySelector("#videoElement");
+
+			if (navigator.mediaDevices.getUserMedia) {
+			    navigator.mediaDevices.getUserMedia({video: true})
+			  .then(function(stream) {
+			    video.srcObject = stream;
+			  })
+			  .catch(function(err0r) {
+			    console.log("Something went wrong!");
+			  });
+			}
+		</script>
+
+	</body>
+</html>
