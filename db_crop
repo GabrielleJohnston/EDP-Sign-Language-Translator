@@ -18,7 +18,8 @@ for i in videos:
 	ret, frame = cap.read()
 	
 	while (ret == True):
-		if ((b % 3) == 0):
+		if ((b % 3) == 0): // this is a condition which makes this while loop take just one frame
+				   // every three frames
 			print ("a: ", a)
 			print ("ret: ", ret)
 			mid_height = int(frame.shape[0]/2)
