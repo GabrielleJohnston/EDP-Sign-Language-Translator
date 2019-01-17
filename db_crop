@@ -1,0 +1,34 @@
+import os, sys
+import numpy as np
+import cv2
+
+path = "C:\\Users\\lapor\\OneDrive\\Desktop\\Sign Language\\original_db"
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+videos = os.listdir(path)
+output_name = []
+a = 0
+b = 0
+
+for i in videos:
+	name = (path + '\\' + i)
+	cap = cv2.VideoCapture(name)
+	temp_name = i.replace('.mp4', '_cropped_qwerty.avi')
+	output_name += [temp_name]
+	out = cv2.VideoWriter(output_name[a] ,fourcc, 25.0, (340,340))
+	ret, frame = cap.read()
+	
+	while (ret == True):
+		if ((b % 3) == 0):
+			print ("a: ", a)
+			print ("ret: ", ret)
+			mid_height = int(frame.shape[0]/2)
+			mid_width = int(frame.shape[1]/2)
+			roi = frame [mid_height-170 : mid_height+170, mid_width-170 : mid_width+170]
+			out.write(roi)
+		ret, frame = cap.read()
+		b +=1
+	a += 1
+
+	out.release()
+
+cap.release()
