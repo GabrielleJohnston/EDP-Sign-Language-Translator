@@ -48,12 +48,17 @@ worksheet = workbook.add_worksheet()
 row = 0
 col = 0
 
-
 twenty = []
 thirty_eight = []
+thirty_four = []
+twenty_eight = []
+
+h_differences = []
+
+live_ratios = []
 
 # array to store the differences between two coordinates at every frame
-differences = []
+d_differences = []
 
 # start frames-per-second counter and timer - only necessary for testing purposes
 fps = FPS().start()
@@ -66,17 +71,16 @@ while fvs.more():
     frame = fvs.read()
     if frame is not None:
         frame = imutils.resize(frame, width=400)
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray_vid = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-	    # detect faces in the grayscale frame
-        rects = detector(gray, 1)
+        rects_vid = detector(gray_vid, 1)
 
 		# loop over the face detections
-        for rect in rects:
+        for rect in rects_vid:
 			# determine the facial landmarks for the face region, then
 			# convert the facial landmark (x, y)-coordinates to a NumPy
 			# array
-            shape = predictor(gray, rect)
+            shape = predictor(gray_vid, rect)
             shape = face_utils.shape_to_np(shape)
 
 
@@ -85,16 +89,26 @@ while fvs.more():
             if (counter == 19):
                 # create an array containing the x and y coordinates of point 20 on the landmark map
                 twenty = shape[counter]
+            if counter == 27:
+                twenty_eight = shape[counter]
+            if counter == 33:
+                thirty_four = shape[counter]
             if (counter == 37):
                 # create an array containing the x and y coordinates of point 38 on the landmark map
                 thirty_eight = shape[counter]
+
+
             counter = counter + 1
 
         # coordinates are stored as [x, y] - twenty[1] accesses y coordinate of 20
-        difference = abs(twenty[1] - thirty_eight[1])
+        d_difference = abs(twenty[1] - thirty_eight[1])
 
         # append the difference between the two points at every frame to an array
-        differences.append(difference)
+        d_differences.append(d_difference)
+
+        h_difference = abs(thirty_four[1] - twenty_eight[1])
+
+        h_differences.append(h_difference)
 
         fps.update()
 
@@ -112,28 +126,49 @@ while fvs.more():
 fps.stop()
 
 # create an array, taking the average the differences of every four frames - this aims to reduce the effects of any anomalies/discrepancys in the positions of the coordinates
+
+for i in range(0, len(d_differences)):
+    live_ratio = round(d_differences[i]/h_differences[i], 2)
+    live_ratios.append(live_ratio)
+
 sum = 0
-average = []
-for i in range(0, len(differences)):
-    if (i+1)%4 != 0:
-        sum = sum + differences[i]
-    if(i+1)%4 == 0:
-        sum = sum + differences[i]
-        average.append(sum/4)
+ratios_average = []
+for i in range(0, len(live_ratios)):
+    if (i+1)%3 != 0:
+        sum = sum + live_ratios[i]
+    if(i+1)%3 == 0:
+        sum = sum + live_ratios[i]
+        ratios_average.append(round(sum/3, 2))
         sum = 0
-print(average)
+print(ratios_average)
 
 counter1 = 0
-for i in range(0, len(average)):
+counter2 = 0
+
+# select a value of k - will need testing and changing between people
+k = 0.1
+
+
+# counter1 refers to frowning, counter2 to eyebrows being raised
+for i in range(0, len(ratios_average)):
+    x = False
     # write entries in 'average' array to an excel spreadsheet - makes analysis for testing easier, in reality not needed
-    worksheet.write(row, col, average[i])
+    worksheet.write(row, col, ratios_average[i])
     row = row + 1
-    if average[i] > 10:     # buffer value of 10 needs testing and may differ between people - more testing required
+    if ratios_average[i] <= (live_ratios[0] - k/4):
+        # buffer value needs testing and may differ between people - more testing required
         counter1 = counter1 + 1
-    else:
-        if counter1 >= 3:   # three 'high' values needed in a row to class as success - equivalent to eyebrows raised for approx 1 second
+        x = True
+    if ratios_average[i] >= (live_ratios[0] + k/2):
+        counter2 = counter2 + 1
+        x = True
+    if x == False:
+        if counter1 > 3:
+            print("FROWN")
+        if counter2 > 3:   # three 'high' values needed in a row to class as success - equivalent to eyebrows raised for approx 1 second
             print("EYEBROWS WERE RAISED!!!")
         counter1 = 0
+        counter2 = 0
 
 
 # prints the time for analysis and fames per second
