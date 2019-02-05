@@ -28,7 +28,7 @@ args = vars(ap.parse_args())
 # start to fill
 print("[INFO] starting video file thread...")
 fvs = FileVideoStream(args["video"]).start()
-time.sleep(1.0)
+# time.sleep(1.0)
 
 # initialize dlib's face detector (HOG-based) and then create
 # the facial landmark predictor
@@ -48,10 +48,13 @@ worksheet = workbook.add_worksheet()
 row = 0
 col = 0
 
+three = []
 twenty = []
 thirty_eight = []
 thirty_four = []
 twenty_eight = []
+time = []
+x_differences = []
 
 h_differences = []
 
@@ -86,6 +89,8 @@ while fvs.more():
 
         counter = 0
         for j in shape:
+            if counter == 2:
+                three = shape[counter]
             if (counter == 19):
                 # create an array containing the x and y coordinates of point 20 on the landmark map
                 twenty = shape[counter]
@@ -110,6 +115,14 @@ while fvs.more():
 
         h_differences.append(h_difference)
 
+
+
+        # difference in x direction for head shaking
+        x_difference = abs(thirty_four[0] - three[0])
+
+        x_differences.append(x_difference)
+        time.append(format(fps))
+
         fps.update()
 
 	# uncomment the below to show video output with labelled landmarks
@@ -118,8 +131,8 @@ while fvs.more():
 	# and draw them on the image
         for (x, y) in shape:
             cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
-
-	# show the frame
+    #
+	# # show the frame
         cv2.imshow("Frame", frame)
         key = cv2.waitKey(1) & 0xFF
 
@@ -140,7 +153,6 @@ for i in range(0, len(live_ratios)):
         sum = sum + live_ratios[i]
         ratios_average.append(round(sum/3, 2))
         sum = 0
-print(ratios_average)
 
 counter1 = 0
 counter2 = 0
@@ -169,6 +181,17 @@ for i in range(0, len(ratios_average)):
             print("EYEBROWS WERE RAISED!!!")
         counter1 = 0
         counter2 = 0
+
+for i in range(1, len(x_differences)):
+    if i % 2 != 0:
+        num = x_differences[i] - x_differences[i-1]
+        denom = time[i] - time[i-1]
+        slope = num/denom
+        # if slope < 0, append '-' to char array
+        # '+', 'o'
+        #
+
+# count consecutive chars into new array - new element when char changes
 
 
 # prints the time for analysis and fames per second
