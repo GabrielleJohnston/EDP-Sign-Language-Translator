@@ -53,7 +53,6 @@ twenty = []
 thirty_eight = []
 thirty_four = []
 twenty_eight = []
-time = []
 x_differences = []
 
 h_differences = []
@@ -65,9 +64,10 @@ d_differences = []
 
 # start frames-per-second counter and timer - only necessary for testing purposes
 fps = FPS().start()
-
+time_count = 0
 # loop over the frames from the video stream
 while fvs.more():
+
 	# grab the frame from the threaded video file stream, resize it to
 	# have a maximum width of 400 pixels, and convert it to
 	# grayscale
@@ -121,7 +121,20 @@ while fvs.more():
         x_difference = abs(thirty_four[0] - three[0])
 
         x_differences.append(x_difference)
-        time.append(format(fps))
+
+        if time_count > 1:
+            delta = x_differences[time_count] - x_differences[time_count-1]
+            if delta < -2:
+                print(delta)
+            elif delta > 2:
+                print(delta)
+            else:
+                print("0")
+
+
+
+        time.sleep(0.5)
+        time_count = time_count + 1
 
         fps.update()
 
@@ -182,14 +195,22 @@ for i in range(0, len(ratios_average)):
         counter1 = 0
         counter2 = 0
 
-for i in range(1, len(x_differences)):
-    if i % 2 != 0:
-        num = x_differences[i] - x_differences[i-1]
-        denom = time[i] - time[i-1]
-        slope = num/denom
-        # if slope < 0, append '-' to char array
-        # '+', 'o'
-        #
+delta_array = []
+
+# for i in range(1, len(x_differences)):
+#         delta = x_differences[i] - x_differences[i-1]
+#         if delta < -3:
+#             delta_array.append('-')
+#         elif delta > 3:
+#             delta_array.append('+')
+#         else:
+#             delta_array.append('o')
+#
+# for i in range(0, len(delta_array)):
+#     if delta_array[i] == '+':
+        plus_count = plus_count + 1
+    if --
+    if 0
 
 # count consecutive chars into new array - new element when char changes
 
