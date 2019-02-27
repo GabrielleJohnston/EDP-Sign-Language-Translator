@@ -44,12 +44,12 @@ def createTrainingData():
         videoPath = os.path.join(TRAIN_DIR_WHAT, video) # full path of image
         vid = readVideo(videoPath)
         vid_short = sample(vid)
-        trainingData.append([np.array(vid_short), 'what'])
+        trainingData.append([np.array(vid_short), [0, 1]])
     for video in tqdm(os.listdir(TRAIN_DIR_HUNGRY)):
         videoPath = os.path.join(TRAIN_DIR_HUNGRY, video) # full path of image
         vid = readVideo(videoPath)
         vid_short = sample(vid)
-        trainingData.append([np.array(vid_short), 'hungry'])
+        trainingData.append([np.array(vid_short), [1, 0]])
     np.save('trainingData.npy', trainingData) # save the training data in a numpy file
     return trainingData
 
