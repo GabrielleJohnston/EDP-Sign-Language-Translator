@@ -21,5 +21,7 @@ tflearn: pip install tflearn
 
 
 I think these should already be included in all versions of python, but if not:
+
 math: pip install math
+
 random: pip install random
