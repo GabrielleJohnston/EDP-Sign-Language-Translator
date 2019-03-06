@@ -9,6 +9,7 @@ from tqdm import tqdm
 
 TRAIN_DIR_WHAT = 'C:/Users/gabri/Documents/Uni/Year 2/Engineering Design Project/Hard drive/Raw Data/DATABASE/What'
 TRAIN_DIR_HUNGRY = 'C:/Users/gabri/Documents/Uni/Year 2/Engineering Design Project/Hard drive/Raw Data/DATABASE/Hungry'
+TRAIN_DIR_ANGRY = 'C:/Users/gabri/Documents/Uni/Year 2/Engineering Design Project/Hard drive/Raw Data/DATABASE/Angry'
 IMG_W_O = 96
 IMG_W_F = 54
 IMG_H = 54
@@ -44,12 +45,17 @@ def createTrainingData():
         videoPath = os.path.join(TRAIN_DIR_WHAT, video) # full path of image
         vid = readVideo(videoPath)
         vid_short = sample(vid)
-        trainingData.append([np.array(vid_short), [0, 1]])
+        trainingData.append([np.array(vid_short), [1, 0, 0]])
     for video in tqdm(os.listdir(TRAIN_DIR_HUNGRY)):
         videoPath = os.path.join(TRAIN_DIR_HUNGRY, video) # full path of image
         vid = readVideo(videoPath)
         vid_short = sample(vid)
-        trainingData.append([np.array(vid_short), [1, 0]])
+        trainingData.append([np.array(vid_short), [0, 1, 0]])
+    for video in tqdm(os.listdir(TRAIN_DIR_HUNGRY)):
+        videoPath = os.path.join(TRAIN_DIR_ANGRY, video) # full path of image
+        vid = readVideo(videoPath)
+        vid_short = sample(vid)
+        trainingData.append([np.array(vid_short), [0, 0, 1]])
     np.save('trainingData.npy', trainingData) # save the training data in a numpy file
     return trainingData
 

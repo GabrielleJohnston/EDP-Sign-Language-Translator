@@ -14,7 +14,7 @@ CONV_LAYERS = 1
 POOL_LAYERS = 1
 NO_CHANNELS = 1 # how many input streams i.e. a network with 3 channels could have RGB, depth, and body skeleton streams
 VERSION = 1 # to keep track of changes in a particular model
-NO_SIGNS = 2 # number of signs to learn - i.e. the alphabet
+NO_SIGNS = 3 # number of signs to learn - i.e. the alphabet
 N_EPOCH = 10 # number of epochs
 MODEL_NAME = '3dconv-{}--{}--{}--{}--{}-.model'.format(LR, CONV_LAYERS, POOL_LAYERS, NO_CHANNELS, VERSION)
 
