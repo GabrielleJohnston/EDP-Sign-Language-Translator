@@ -1,5 +1,5 @@
 ### Instructions
-Run the video processing programme on the DATABASE/What and DATABASE/Hungry folders first.
+Run the video processing programme on the DATABASE folders first.
 Make sure the 3d cnn file is in the same folder as the numpy file created by the video processing, and then run it. 
 
 I have added both python notebook and python file versions. training1.ipynb is the same as videoprocessing_ver1.py. cnn.ipynb is the same as 3dcnn_ver1.py.
