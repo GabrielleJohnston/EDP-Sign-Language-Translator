@@ -18,15 +18,11 @@ NO_SIGNS = 3 # number of signs to learn - i.e. the alphabet
 N_EPOCH = 10 # number of epochs
 MODEL_NAME = '3dconv-{}--{}--{}--{}--{}-.model'.format(LR, CONV_LAYERS, POOL_LAYERS, NO_CHANNELS, VERSION)
 
-data = np.load("trainingData.npy")
-shuffle(data)
-train_data = data[:-10]
-test_data = data[-10:]
-X = np.array([train_data[i][0] for i in range(0, len(train_data)-1)])
-Y = [train_data[i][1] for i in range(0, len(train_data)-1)]
+train_data = np.load("trainingData.npy")
+shuffle(train_data)
 
-test_X = np.array([test_data[i][0] for i in range(0, len(test_data)-1)])
-test_Y = [test_data[i][1] for i in range(0, len(test_data)-1)]
+X = np.array([i[0] for i in train_data]).reshape([-1, 10, 54, 54, 1])
+Y = [i[1] for i in train_data]
 
 conv_net = input_data(shape = [None, TIME_LEN, IMG_SIZE, IMG_SIZE, NO_CHANNELS], name = 'input')
 
@@ -44,8 +40,7 @@ conv_net = regression(conv_net, optimizer = 'adam', learning_rate = LR, loss = '
 
 model = tflearn.DNN(conv_net, tensorboard_dir = 'log')
 
-model.fit({'input':X}, {'targets':Y}, n_epoch = N_EPOCH, validation_set = ({'input':test_X}, {'targets':test_Y}),
-          show_metric = True, run_id = MODEL_NAME) 
+model.fit(X, Y, n_epoch = N_EPOCH, validation_set = 0.1, show_metric = True, run_id = MODEL_NAME) 
 
 # to view tensorboard, paste the following into command prompt:
 # tensorboard --logdir = foo:C:/.../yourprojectdirectory/log

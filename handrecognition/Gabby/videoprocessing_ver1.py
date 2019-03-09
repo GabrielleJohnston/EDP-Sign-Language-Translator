@@ -37,6 +37,12 @@ def sample(vid):
     while (i < len(vid)):
         new_vid.append(np.array(vid[i]))
         i = i + sample_width
+    while (len(new_vid) > 10):
+        new_vid = new_vid[:-1]
+    while (len(new_vid) < 10):
+        new_vid.append(new_vid[-1])
+    new_vid = np.array(new_vid)
+    new_vid.reshape(-1, 10, 54, 54, 1)
     return new_vid
 
 def createTrainingData():
@@ -51,7 +57,7 @@ def createTrainingData():
         vid = readVideo(videoPath)
         vid_short = sample(vid)
         trainingData.append([np.array(vid_short), [0, 1, 0]])
-    for video in tqdm(os.listdir(TRAIN_DIR_HUNGRY)):
+    for video in tqdm(os.listdir(TRAIN_DIR_ANGRY)):
         videoPath = os.path.join(TRAIN_DIR_ANGRY, video) # full path of image
         vid = readVideo(videoPath)
         vid_short = sample(vid)
