@@ -1,6 +1,6 @@
 # ensure that shape_predictor_68_face_landmarks.dat file is saved in website folder
-
-def faceMoves(a):
+# string argument is shape_predictor....... filename
+def faceMoves(string):
 	from imutils.video import VideoStream
 	from imutils import face_utils
 	from imutils.video import FPS   # not needed in proper implementation - test feature
@@ -16,8 +16,7 @@ def faceMoves(a):
 	# set arguments required to run program - see USAGE above
 	# --shape-predictor refers to the trained model referred to to map the facial landmarks
 	ap = argparse.ArgumentParser()
-	ap.add_argument("-p", "--shape-predictor", required=True,
-		help="path to facial landmark predictor")
+	ap.add_argument(string)
 	ap.add_argument("-r", "--picamera", type = int, default = -1,
 		help = "whether not the Rapsberry Pi camera should be used")
 	args = vars(ap.parse_args())
