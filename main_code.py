@@ -19,8 +19,10 @@ Pre_Processing.processVideo(videoFile, 'processedvideo', 30, 36, 0)
 sign = 'hungry'
 
 if facialCue == 'shakeNeutral':
-    print('not ', sign)
+    print('not', sign)
 elif facialCue == 'neutralNeutral':
     print(sign)
-elif facialCue == 'shakeRaised':
+elif facialCue == 'neutralRaised':
     print(sign+'?')
+elif facialCue == 'shakeRaised':
+    print('not', sign+'?')
