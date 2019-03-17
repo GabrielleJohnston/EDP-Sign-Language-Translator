@@ -2,7 +2,7 @@
 # python facial_landmarks_video.py  --video video.mp4
 
 
-# input arguments: sp is a string - file name for shape predictor file, videoFile is string - video file name
+# input arguments: shapePredictor is a string - file name for shape predictor file, videoFile is string - video file name
 def faceMoves(shapePredictor, videoFile):
     from imutils.video import FileVideoStream
     from imutils import face_utils
