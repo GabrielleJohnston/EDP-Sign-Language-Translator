@@ -1,25 +1,26 @@
-import numpy as np
-import cv2
+# ENSURE THAT shape_predictor_68_face_landmarks.dat FILE IS IN THE SAME
+# DIRECTORY AS THE CODE, OR THAT PATH IS CHANGED
 
-cap = cv2.VideoCapture("C:\\Users\\BE-jgs3817\\Desktop\\EDP\\test_video.mp4")
+# ENSURE THAT ALL OTHER SCRIPTS ARE IN SAME DIRECTORY AS CODE, OR THAT PATH IS
+# CHANGED
 
-while True:
-    ret, frame = cap.read()
-    cv2.imshow('frame', frame)
+import facial_landmarks_video
+import Pre_Processing
 
-    if cv2.waitKey(33) & 0xFF == ord('q'):
-        break
+shapePredictor = 'shape_predictor_68_face_landmarks.dat'
 
-cap.release()
-cv2.destroyAllWindows()
+# name of video file may be different - currently set to test.mp4 in pre-processing program
+videoFile = 'test.mp4'
 
+facialCue = facial_landmarks_videos.faceMoves(shapePredictor, videoFile)
+
+Pre_Processing.processVideo(videoFile, 'processedvideo', 30, 36, 0)
 #facial_cue : headshake, eyebrow_raised, frowning
 sign = 'hungry'
-facial_cue = 'headshake'
 
-if sign == 'hungry' and facial_cue == 'headshake':
-    print('not hungry')
-elif sign == 'hungry':
-    print('hungry')
-else:
+if facialCue == 'shakeNeutral':
+    print('not ', sign)
+elif facialCue == 'neutralNeutral':
     print(sign)
+elif facialCue == 'shakeRaised':
+    print(sign+'?')
