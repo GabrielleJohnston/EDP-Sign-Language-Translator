@@ -1,264 +1,206 @@
 # USAGE
-# python facial_landmarks_video.py --shape-predictor shape_predictor_68_face_landmarks.dat --video video.mp4
-
-from imutils.video import FileVideoStream
-from imutils import face_utils
-import numpy as np
-import datetime
-import argparse
-import imutils
-import time
-import dlib
-import cv2
+# python facial_landmarks_video.py  --video video.mp4
 
 
-# FUNCTION FOR DETECTING HEAD SHAKING
-    # return True if head shaken, False if not
-def headShaking(visibleFaceWidthOverTime):
-    signsOfDiffInFWBetweenFrames = []
-    averagedVFWoT = []
+# input arguments: shapePredictor is a string - file name for shape predictor file, videoFile is string - video file name
+def faceMoves(shapePredictor, videoFile):
+    from imutils.video import FileVideoStream
+    from imutils import face_utils
+    import numpy as np
+    import datetime
+    import argparse
+    import imutils
+    import time
+    import dlib
+    import cv2
 
-    # again, taking the average of each cluster of three elements to try to reduce effect of anomlies
-    tempSum = 0
-    for i in range(0, len(visibleFaceWidthOverTime)):
+    # start the file video stream
+    fvs = FileVideoStream(videoFile).start()
+
+    # initialize dlib's face detector (HOG-based) and then create
+    # the facial landmark predictor
+    # detector is the initialised pre-trained detector from dlib, based on HOG standard
+
+    # detector is now the face detector model
+    detector = dlib.get_frontal_face_detector()
+
+    # "shape predictor" is the taught model for landmark detections
+    # loading this model into 'predictor() function'
+    predictor = dlib.shape_predictor(shapePredictor)
+
+    # array for each required landmark - add as required
+    # number refers to number on coordinate map - see file on github
+    three = []
+    twenty = []
+    thirty_eight = []
+    thirty_four = []
+    twenty_eight = []
+
+    # array to hold the differences between points in the x direction for head shaking
+    x_differences = []
+
+    # array to hold the differences in points on the nose in the y direction
+    # used in normalisation of eyebrow distances fac
+    h_differences = []
+
+    live_ratios = []
+
+    # array to store the differences between two coordinates at every frame
+    d_differences = []
+
+    shape = []
+
+    # loop over the frames from the video stream
+    while fvs.more():
+
+    	# grab the frame from the threaded video file stream, resize it to
+    	# have a maximum width of 400 pixels, and convert it to
+    	# grayscale
+        frame = fvs.read()
+        if frame is not None:
+            frame = imutils.resize(frame, width=400)
+            gray_vid = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+            rects_vid = detector(gray_vid, 1)
+
+            if (len(rects_vid) <= 0):
+                continue
+
+    		# loop over the face detections
+            for rect in rects_vid:
+    			# determine the facial landmarks for the face region, then
+    			# convert the facial landmark (x, y)-coordinates to a NumPy
+    			# array
+                shape = predictor(gray_vid, rect)
+                shape = face_utils.shape_to_np(shape)
+
+
+            counter = 0
+            for j in shape:
+                if counter == 2:
+                    three = shape[counter]
+                if (counter == 19):
+                    # create an array containing the x and y coordinates of point 20 on the landmark map
+                    twenty = shape[counter]
+                if counter == 27:
+                    twenty_eight = shape[counter]
+                if counter == 33:
+                    thirty_four = shape[counter]
+                if (counter == 37):
+                    # create an array containing the x and y coordinates of point 38 on the landmark map
+                    thirty_eight = shape[counter]
+
+
+                counter = counter + 1
+
+            # coordinates are stored as [x, y] - twenty[1] accesses y coordinate of 20
+            d_difference = abs(twenty[1] - thirty_eight[1])
+
+            # append the difference between the two points at every frame to an array
+            d_differences.append(d_difference)
+
+            h_difference = abs(thirty_four[1] - twenty_eight[1])
+
+            h_differences.append(h_difference)
+
+
+
+            # difference in x direction for head shaking
+            x_difference = abs(thirty_four[0] - three[0])
+
+            x_differences.append(x_difference)
+
+    # create an array, taking the average the differences of every four frames - this aims to reduce the effects of any anomalies/discrepancys in the positions of the coordinates
+
+    for i in range(0, len(d_differences)):
+        live_ratio = round(d_differences[i]/h_differences[i], 2)
+        live_ratios.append(live_ratio)
+
+    sum = 0
+    ratios_average = []
+    for i in range(0, len(live_ratios)):
         if (i+1)%3 != 0:
-            tempSum = tempSum + visibleFaceWidthOverTime[i]
+            sum = sum + live_ratios[i]
         if(i+1)%3 == 0:
-            tempSum = tempSum + visibleFaceWidthOverTime[i]
-            averagedVFWoT.append(round(tempSum/3, 2))
-            tempSum = 0
+            sum = sum + live_ratios[i]
+            ratios_average.append(round(sum/3, 2))
+            sum = 0
 
-    for i in range(0, len(averagedVFWoT) - 1):
-        diffInVFWBetweenFrames = averagedVFWoT[i + 1] - averagedVFWoT[i]
+    counter1 = 0
+    counter2 = 0
 
-        # a buffer value of two was chosen as when the face gets close to the edges of the shake, there are more anomalies
-        # where the model struggles to plot all 68 points. This is a value that is large enough to remove these anomalies but
-        # not too large that the shake is not properly detected
+    # select a value of k - will need testing and changing between people
+    k = 0.1
+    eyebrowMovement = 'neutral'
+    # counter1 refers to frowning, counter2 to eyebrows being raised
+    for i in range(0, len(ratios_average)):
+        x = False
+        if ratios_average[i] <= (live_ratios[0] - k/4):
+            # buffer value needs testing and may differ between people - more testing required
+            counter1 = counter1 + 1
+            x = True
+        if ratios_average[i] >= (live_ratios[0] + k/2):
+            counter2 = counter2 + 1
+            x = True
+        if x == False:
+            if counter1 > 3:
+                eyebrowMovement = 'frown'
+            if counter2 > 3:   # three 'high' values needed in a row to class as success - equivalent to eyebrows raised for approx 1 second
+                eyebrowMovement = 'raised'
+            counter1 = 0
+            counter2 = 0
 
-        # difference between frames is effectively time dependent, therefore a very slow movement to one side from the other
-        # may not be registered as a shake
-        if diffInVFWBetweenFrames < -2:
-            signsOfDiffInFWBetweenFrames.append('-')
-            # for negative values
+    delta_array = []
+    x_average_differences = []
 
-        elif diffInVFWBetweenFrames > 2:
-            signsOfDiffInFWBetweenFrames.append('+')
-            # for positive values
+    sum2 = 0
+    for i in range(1, len(x_differences)):
+        if (i+1)%3 != 0:
+            sum2 = sum2 + x_differences[i]
+        if(i+1)%3 == 0:
+            sum2 = sum2 + x_differences[i]
+            x_average_differences.append(round(sum2/3, 2))
+            sum2 = 0
 
+
+    for i in range(1, len(x_average_differences) - 1):
+        delta = x_average_differences[i + 1] - x_average_differences[i]
+        if delta < -2:
+            # print('-')
+            delta_array.append('-')
+        elif delta > 2:
+            # print('+')
+            delta_array.append('+')
         else:
-            signsOfDiffInFWBetweenFrames.append('o')
-            # all values between -2 and 2 are taken as 0
+            # print("0")
+            delta_array.append('o')
 
     headshake = False
-    for i in range(0, len(signsOfDiffInFWBetweenFrames) - 1):
-
-        # if there is a trend of positive movement then negative, this is registered as shaking the head
-        if (signsOfDiffInFWBetweenFrames[i] == '+' and signsOfDiffInFWBetweenFrames[i + 1] == '-'):
+    for i in range(0, len(delta_array) - 1):
+        if (delta_array[i] == '+' and delta_array[i + 1] == '-'):
             headshake = True
-        # also registered as shaking the head for the reverse - negative movement then positive to account for
-        # someone preferentially shaking in opposite directions
-        elif (signsOfDiffInFWBetweenFrames[i] == '-' and signsOfDiffInFWBetweenFrames[i + 1] == '+'):
+        elif (delta_array[i] == '-' and delta_array[i + 1] == '+'):
             headshake = True
 
-    if headshake == True:
-        return True
-    else:
-        return False
-
-# FUNCTION FOR CHECKING FOR EYEBROW MOVEMENT
-    # return 1 if frown
-    # return 2 if raising eyebrows
-    # return 3 if neither
-def eyebrowMovement(normalisedEyetoEyebrowThroughFrames):
-
-    tempSum = 0
-    # averageNormalisedEyebrows is an array that will contain an averaged version of normalisedEyetoEyebrowThroughFrames, by
-    # taking the average value of each cluster of three elements to try to reduce anomalies from the landmarks jumping between frames
-    # tempSum is a temporary value that we use to do this
-    averageNormalisedEyebrows = []
-    for i in range(0, len(normalisedEyetoEyebrowThroughFrames)):
-        if (i+1)%3 != 0:
-            tempSum = tempSum + normalisedEyetoEyebrowThroughFrames[i]
-        if(i+1)%3 == 0:
-            tempSum = tempSum + normalisedEyetoEyebrowThroughFrames[i]
-            averageNormalisedEyebrows.append(round(tempSum/3, 2))
-            tempSum = 0
-
-    frownCount = 0
-    raiseCount = 0
-
-    # select a value of k - will need testing and changing between people. This acts as the 'buffer'
-    # value to differentiate between a deliberate raising of the eyebrows and random detections of small movement
-    k = 0.1
+    fvs.stop()
+    cv2.destroyAllWindows()
 
 
-    # frownCount refers to frowning, raiseCount to eyebrows being raised
-    for i in range(0, len(averageNormalisedEyebrows)):
-        # x is a boolean value that helps to reset the counters when no eyebrow movement is detected
-        x = False
-
-        if averageNormalisedEyebrows[i] <= (normalisedEyetoEyebrowThroughFrames[0] - k/4):
-            # buffer value needs testing and may differ between people - more testing required
-            frownCount = frownCount + 1
-            x = True
-
-        if averageNormalisedEyebrows[i] >= (normalisedEyetoEyebrowThroughFrames[0] + k/2):
-            raiseCount = raiseCount + 1
-            x = True
-
-        if x == False:
-            # if three occaisions in a row of an upward or downward movement are detected, this is classed as a successful result
-            if frownCount > 3:
-                return 1
-            if raiseCount > 3:   # three 'high' values needed in a row to class as success - equivalent to eyebrows raised for approx 1 second
-                return 2
-    return 0
-
-# FUNCTION THAT DETERMINES IF EYEBROW MOVEMENT IS RAISING
-    # returns True if raising, False if not
-def eyebrowsRaised(eyebrowMovementResult):
-    if eyebrowMovementResult == 2:
-        return True
-    else:
-        return False
-
-# FUNCTION THAT DETERMINES IF EYEBROW MOVEMENT IS FROWNING
-    # returns True if frowning, False if not
-def eyebrowsFrowned(eyebrowMovementResult):
-    if eyebrowMovementResult == 1:
-        return True
-    else:
-        return False
-
-
-# set arguments required to run program - see USAGE above
-# --shape-predictor refers to the trained model referred to to map the facial landmarks
-ap = argparse.ArgumentParser()
-ap.add_argument("-p", "--shape-predictor", required=True,
-    help="path to facial landmark predictor")
-ap.add_argument("-v", "--video", required=True,
-    help="path to input video file")
-args = vars(ap.parse_args())
-
-# start the file video stream
-fvs = FileVideoStream(args["video"]).start()
-
-# initialize dlib's face detector (HOG-based) and then create
-# the facial landmark predictor
-# detector is the initialised pre-trained detector from dlib, based on HOG standard
-
-# detector is now the face detector model
-detector = dlib.get_frontal_face_detector()
-
-# "shape predictor" is the taught model for landmark detections
-# loading this model into 'predictor() function'
-predictor = dlib.shape_predictor(args["shape_predictor"])
-
-# array for each required landmark - add as required
-# number refers to number on coordinate map - see file on github
-three = []
-twenty = []
-thirty_eight = []
-thirty_four = []
-twenty_eight = []
-
-# array to hold the differences between points in the x direction for head shaking
-visibleFaceWidthOverTime = []
-
-# array to hold the differences in points on the nose in the y direction
-# used in normalisation of eyebrow distances
-noseLengthThroughFrames = []
-
-# array to store the differences between two coordinates at every frame - the distance between the eye and eyebrow
-# to detect eyebrows being raised
-eyeToEyebrowOverTime = []
-
-normalisedEyetoEyebrowThroughFrames = []
-
-
-# loop over the frames from the video stream
-while fvs.more():
-
-	# grab the frame from the threaded video file stream, resize it to
-	# have a maximum width of 400 pixels, and convert it to
-	# grayscale
-    frame = fvs.read()
-    if frame is not None:
-        frame = imutils.resize(frame, width=400)
-        grayscaleFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        # faces is an array containing four sets of coordinates for the bounding box that encloses the face
-        # each element in faces is the bounding box for one face
-        faces = detector(grayscaleFrame, 0)
-
-		# loop over the face detections
-        # 'for each detected face ...'
-        for face in faces:
-			# determine the facial landmarks for the face region, then
-			# convert the facial landmark (x, y)-coordinates to a NumPy
-			# array
-            facialLandmarks = predictor(grayscaleFrame, face)
-            facialLandmarks = face_utils.shape_to_np(facialLandmarks)
-
-            # facialLandmarks is a numpy array that contains all the coordinates of the 68 landmarks
-            # facialLandmarks is an array of (x, y) coordinates of the landmarks i.e each element in facialLandmarks is an array that
-            # contains the coordinates of one of the 68 landmarks
-
-        # landmark counter helps us iterate through facialLandmarks to pull the coordinates of the relevant landmarks
-        landmarkCounter = 0
-        for j in facialLandmarks:
-            if landmarkCounter == 2:
-                # the array 'three' now contains the x and y coordinates of the point 3 on the landmakr map
-                three = facialLandmarks[landmarkCounter]
-
-            if landmarkCounter == 19:
-                twenty = facialLandmarks[landmarkCounter]
-
-            if landmarkCounter == 27:
-                twenty_eight = facialLandmarks[landmarkCounter]
-
-            if landmarkCounter == 33:
-                thirty_four = facialLandmarks[landmarkCounter]
-
-            if landmarkCounter == 37:
-                thirty_eight = facialLandmarks[landmarkCounter]
-
-            landmarkCounter = landmarkCounter + 1
-
-        # coordinates are stored as [x, y] therefore twenty[1] accesses y coordinate of 20
-
-        # eyeToEyebrow is the distance between point 20 and point 38 - distance between eye and eyebrow
-        eyeToEyebrow = abs(twenty[1] - thirty_eight[1])
-
-        # append the difference between the two points at every frame to an array
-        # each element in eyeToEyebrowOverTime is a value eyeToEyebrow at a frame i.e. first (0) element contains eyeToEyebrow at first frame
-        eyeToEyebrowOverTime.append(eyeToEyebrow)
-
-        # noseLength is the distance between point 34 and point 28 - length of the nose
-        noseLength = abs(thirty_four[1] - twenty_eight[1])
-
-        # each element in noseLengthThroughFrames contains the value of noseLength at the relevant frame
-        noseLengthThroughFrames.append(noseLength)
-
-        # difference in x direction between point 34 and point 3 - visible width of one side of face
-        visibleFaceWidth = abs(thirty_four[0] - three[0])
-
-        # each element in visibleFaceWidthOverTime contains the value visibleFaceWidth at the relevant frame
-        visibleFaceWidthOverTime.append(visibleFaceWidth)
-
-# create an array, taking the average the differences of every four frames - this aims to reduce the effects of any anomalies/discrepancys in the positions of the coordinates
-# the distance in eyeToEyebrow are normalised by dividing by noseLength for each frame, then added to an array of normalisedEyetoEyebrowThroughFrames
-for i in range(0, len(eyeToEyebrowOverTime)):
-    normalisedEyetoEyebrow = round(eyeToEyebrowOverTime[i]/noseLengthThroughFrames[i], 2)   # elements are rounded to 2dp
-    normalisedEyetoEyebrowThroughFrames.append(normalisedEyetoEyebrow)
-
-
-# BOOLEAN VARIABLES TO PASS INTO FINAL PROGRAM
-headshake = headShaking(visibleFaceWidthOverTime)
-eyebrowMovementResult = eyebrowMovement(normalisedEyetoEyebrowThroughFrames)
-raisedEyebrows = eyebrowsRaised(eyebrowMovementResult)
-frowning = eyebrowsFrowned(eyebrowMovementResult)
-
-print("head shaken? : ", headshake)
-print("eyebrows raised? : ", raisedEyebrows)
-print("frowning? : ", frowning)
+    if headshake == True and eyebrowMovement == 'frown':
+        return 'shakeFrown'
+        # print('shakeFrown')
+    elif headshake == True and eyebrowMovement == 'raised':
+        return 'shakeRaised'
+        # print('shakeRaised')
+    elif headshake == True and eyebrowMovement == 'neutral':
+        return 'shakeNeutral'
+        # print('shakeNeutral')
+    elif headshake == False and eyebrowMovement == 'frown':
+        return 'neutralFrown'
+        # print('neutralFrown')
+    elif headshake == False and eyebrowMovement == 'raised':
+        return 'neutralRaised'
+        # print('neutralRaised')
+    elif headshake == False and eyebrowMovement == 'neutral':
+        return 'neutralNeutral'
+        # print('neutralNeutral')
