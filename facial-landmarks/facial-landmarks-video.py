@@ -2,7 +2,7 @@
 # python facial_landmarks_video.py  --video video.mp4
 
 
-# input arguments: shapePredictor is a string - file name for shape predictor file, videoFile is string - video file name
+# input arguments: sp is a string - file name for shape predictor file, videoFile is string - video file name
 def faceMoves(shapePredictor, videoFile):
     from imutils.video import FileVideoStream
     from imutils import face_utils
@@ -110,6 +110,12 @@ def faceMoves(shapePredictor, videoFile):
 
             x_differences.append(x_difference)
 
+
+            for (x, y) in shape:
+                cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
+
+            cv2.imshow("Frame", frame)
+            key = cv2.waitKey(1) & 0xFF
     # create an array, taking the average the differences of every four frames - this aims to reduce the effects of any anomalies/discrepancys in the positions of the coordinates
 
     for i in range(0, len(d_differences)):
@@ -166,13 +172,10 @@ def faceMoves(shapePredictor, videoFile):
     for i in range(1, len(x_average_differences) - 1):
         delta = x_average_differences[i + 1] - x_average_differences[i]
         if delta < -2:
-            # print('-')
             delta_array.append('-')
         elif delta > 2:
-            # print('+')
             delta_array.append('+')
         else:
-            # print("0")
             delta_array.append('o')
 
     headshake = False
@@ -188,19 +191,13 @@ def faceMoves(shapePredictor, videoFile):
 
     if headshake == True and eyebrowMovement == 'frown':
         return 'shakeFrown'
-        # print('shakeFrown')
     elif headshake == True and eyebrowMovement == 'raised':
         return 'shakeRaised'
-        # print('shakeRaised')
     elif headshake == True and eyebrowMovement == 'neutral':
         return 'shakeNeutral'
-        # print('shakeNeutral')
     elif headshake == False and eyebrowMovement == 'frown':
         return 'neutralFrown'
-        # print('neutralFrown')
     elif headshake == False and eyebrowMovement == 'raised':
         return 'neutralRaised'
-        # print('neutralRaised')
     elif headshake == False and eyebrowMovement == 'neutral':
         return 'neutralNeutral'
-        # print('neutralNeutral')
