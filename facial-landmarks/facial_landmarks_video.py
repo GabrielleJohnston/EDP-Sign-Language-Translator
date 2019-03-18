@@ -2,7 +2,7 @@
 # python facial_landmarks_video.py  --video video.mp4
 
 
-# input arguments: shapePredictor is a string - file name for shape predictor file, videoFile is string - video file name
+# input arguments: sp is a string - file name for shape predictor file, videoFile is string - video file name
 def faceMoves(shapePredictor, videoFile):
     from imutils.video import FileVideoStream
     from imutils import face_utils
@@ -14,8 +14,40 @@ def faceMoves(shapePredictor, videoFile):
     import dlib
     import cv2
 
+################################################################################
+#               Pre-processing for facial recognition program                  #
+################################################################################
+
+    cap = cv2.VideoCapture(videoFile)
+    ret, frame = cap.read()
+    height = frame.shape[0]
+    width = frame.shape[1]
+
+    face_height = int((2/5)*height)
+    face_width = int((1/4)*width)
+
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    name_out = videoFile.replace(videoFile, "output.mp4")
+    out = cv2.VideoWriter(name_out , fourcc, 25.0, (face_width*2, face_height*2))
+
+    while (ret == True):
+        roi = frame [0 : face_height, int((width/2)-(face_width/2)) : int((width/2)+(face_width/2))]
+        roi = cv2.resize( roi, (face_width*2, face_height*2))
+        ret, frame = cap.read()
+        out.write(roi)
+
+    out.release()
+    cap.release()
+    cv2.destroyAllWindows()
+
+################################################################################
+#               Main body of facial recognition program                        #
+################################################################################
+
+
+
     # start the file video stream
-    fvs = FileVideoStream(videoFile).start()
+    fvs = FileVideoStream(name_out).start()
 
     # initialize dlib's face detector (HOG-based) and then create
     # the facial landmark predictor
@@ -53,9 +85,9 @@ def faceMoves(shapePredictor, videoFile):
     # loop over the frames from the video stream
     while fvs.more():
 
-    	# grab the frame from the threaded video file stream, resize it to
-    	# have a maximum width of 400 pixels, and convert it to
-    	# grayscale
+        # grab the frame from the threaded video file stream, resize it to
+        # have a maximum width of 400 pixels, and convert it to
+        # grayscale
         frame = fvs.read()
         if frame is not None:
             frame = imutils.resize(frame, width=400)
@@ -66,11 +98,11 @@ def faceMoves(shapePredictor, videoFile):
             if (len(rects_vid) <= 0):
                 continue
 
-    		# loop over the face detections
+            # loop over the face detections
             for rect in rects_vid:
-    			# determine the facial landmarks for the face region, then
-    			# convert the facial landmark (x, y)-coordinates to a NumPy
-    			# array
+                # determine the facial landmarks for the face region, then
+                # convert the facial landmark (x, y)-coordinates to a NumPy
+                # array
                 shape = predictor(gray_vid, rect)
                 shape = face_utils.shape_to_np(shape)
 
@@ -136,7 +168,7 @@ def faceMoves(shapePredictor, videoFile):
     counter2 = 0
 
     # select a value of k - will need testing and changing between people
-    k = 0.1
+    k = 0.05
     eyebrowMovement = 'neutral'
     # counter1 refers to frowning, counter2 to eyebrows being raised
     for i in range(0, len(ratios_average)):
