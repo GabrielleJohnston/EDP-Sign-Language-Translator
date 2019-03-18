@@ -4,7 +4,7 @@
 # ENSURE THAT ALL OTHER SCRIPTS ARE IN SAME DIRECTORY AS CODE, OR THAT PATH IS
 # CHANGED
 
-import facial_landmarks_videos_copy
+import facial_landmarks_video
 import Pre_Processing
 
 shapePredictor = 'shape_predictor_68_face_landmarks.dat'
