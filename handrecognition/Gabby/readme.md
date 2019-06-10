@@ -17,6 +17,8 @@ tensorflow: pip install tensorflow=1.8
 
 tflearn: pip install tflearn
 
+kerasL pip install keras
+
 
 I think these should already be included in all versions of python, but if not:
 
