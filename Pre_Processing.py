@@ -59,7 +59,8 @@ def processVideo (path, name_out, resize_factor, side_size, plan):
 				#here the center of frame is found and the frame is cropped wrt that point
 				mid_height = int(roi.shape[0]/2)
 				mid_width = int(roi.shape[1]/2)
-				roi = roi [int(mid_height-(side_size/2)) : int(mid_height+(side_size/2)), int(mid_width-(side_size/2)) : int(mid_width+(side_size/2))]
+				roi = roi [int(mid_height-(side_size/2)) : int(mid_height+(side_size/2)), 
+					   int(mid_width-(side_size/2)) : int(mid_width+(side_size/2))]
 				out.write(roi)
 
 			ret, frame = cap.read()
@@ -87,7 +88,8 @@ def processVideo (path, name_out, resize_factor, side_size, plan):
 
 		while (ret == True):
 
-			if ((((d % (frame_par/frame_number)) == 0) or ((frame_rem >= 10) and (frame_rem < 15) and c==1)) and (d % frame_sel) == 0):
+			if ((((d % (frame_par/frame_number)) == 0) or ((frame_rem >= 10) and (frame_rem < 15) and c==1)) 
+			    and (d % frame_sel) == 0):
 				#here Background substraction algorithm is applied to the frame
 				new_image = fgbg.apply(frame)
 
@@ -95,7 +97,8 @@ def processVideo (path, name_out, resize_factor, side_size, plan):
 				roi_res = cv2.resize(new_image, (int(width/resize_factor), int(height/resize_factor)))
 
 				#here the frame is cropped to im_height x im_width size
-				roi = roi_res [mid_height-int(side_size/2) : mid_height + int(side_size/2), mid_width - int(side_size/2) : mid_width + int(side_size/2)]
+				roi = roi_res [mid_height-int(side_size/2) : mid_height + int(side_size/2), 
+					       mid_width - int(side_size/2) : mid_width + int(side_size/2)]
 
 				roi[np.where(roi == [255])] = [white]
 				out = out + roi
@@ -112,7 +115,8 @@ def processVideo (path, name_out, resize_factor, side_size, plan):
 			roi_res = cv2.resize(new_image, (int(width/resize_factor), int(height/resize_factor)))
 
 			#here the frame is cropped to im_height x im_width size
-			roi = roi_res [mid_height-int(side_size/2) : mid_height + int(side_size/2), mid_width - int(side_size/2) : mid_width + int(side_size/2)]
+			roi = roi_res [mid_height-int(side_size/2) : mid_height + int(side_size/2), 
+				       mid_width - int(side_size/2) : mid_width + int(side_size/2)]
 
 			roi[np.where(roi == [255])] = [white]
 			out = out + roi
