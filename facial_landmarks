@@ -52,13 +52,15 @@ for (i, rect) in enumerate(rects):
 	shape = predictor(gray, rect)
 
 	shape = face_utils.shape_to_np(shape)
-	# here shape becomes an array of 'coordinates' - n dimensional numpy array of shape(68,2) where this shape refers to property of numpy array
+	# here shape becomes an array of 'coordinates' - n dimensional numpy array of shape(68,2) 
+	#where this shape refers to property of numpy array
 
 	# creates an array for the right eyebrow - contains only one zero that is deleted after
 	# if dtype int not specified, integer values are followed by a '.'
 	right_eyebrow = np.zeros(1, dtype = int)
 
-	# counter is used for the tracking of the number referring to each coordinate point - see image on github for reference although note zero index in python
+	# counter is used for the tracking of the number referring to each coordinate point - see image on 
+	# github for reference although note zero index in python
 	counter = 0
 
 	# a numpy array is created that contains the coordinates for the (right eyebrow) landmark.
