@@ -1,8 +1,9 @@
 ### Instructions
-Run the video processing programme on the DATABASE folders first.
-Make sure the 3d cnn file is in the same folder as the numpy file created by the video processing, and then run it. 
+Run the video processing programme on the DATABASE folders first. There are two different video processing programmes. Only run one of them. There is also an untested motion detection programme that can be run instead of the video processing programmes.
+Make sure the 3d cnn file (i.e. keras model) is in the same folder as the numpy file created by the video processing, and then run it. 
 
-### Required downloads:
+
+### Required downloads (may not be up to date):
 numpy: pip install numpy
 
 tqdm: pip install tqdm
